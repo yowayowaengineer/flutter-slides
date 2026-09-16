@@ -1,0 +1,11 @@
+# ルート共通の解析設定。各パッケージの analysis_options.yaml から include して使う。
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    use_key_in_widget_constructors: false
+
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"

@@ -1,0 +1,15 @@
+name: flutter_slides_workspace
+description: よわよわエンジニアの Flutter 登壇資料モノレポ（共通部品 + 各登壇）
+publish_to: none
+
+environment:
+  sdk: ^3.6.0
+
+# Dart pub workspaces: 各パッケージ/登壇を 1 つの lockfile で解決する。
+# メンバー側には `resolution: workspace` を指定する。
+workspace:
+  - packages/slide_kit
+  - talks/_template
+
+dev_dependencies:
+  melos: ^6.0.0

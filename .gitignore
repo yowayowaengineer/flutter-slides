@@ -1,0 +1,24 @@
+# Dart / Flutter
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+pubspec.lock
+
+# fvm（.fvmrc は追跡し、SDK 実体・キャッシュは無視）
+.fvm/
+
+# melos
+.melos_tool/
+pubspec_overrides.yaml
+
+# IDE
+.idea/
+*.iml
+.vscode/*
+!.vscode/launch.json
+
+# OS
+.DS_Store
+Thumbs.db

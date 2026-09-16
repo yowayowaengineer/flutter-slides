@@ -1,0 +1,32 @@
+name: flutter_slides
+
+packages:
+  - packages/*
+  - talks/*
+
+command:
+  bootstrap:
+    # 依存解決は pub workspace に委譲する
+    runPubGetInParallel: false
+
+scripts:
+  analyze:
+    description: 全パッケージを静的解析する
+    exec: fvm flutter analyze
+    packageFilters:
+      flutter: true
+
+  test:
+    description: テストのあるパッケージでテストを実行する
+    exec: fvm flutter test
+    packageFilters:
+      flutter: true
+      dirExists: test
+
+  format:
+    description: dart format を適用する
+    exec: fvm dart format .
+
+  format-check:
+    description: フォーマット崩れがないか検査する（CI 用）
+    exec: fvm dart format --set-exit-if-changed .
