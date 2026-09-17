@@ -33,5 +33,6 @@ flutter:
   uses-material-design: true
 
   # 登壇固有の画像はここに追加する（共通アセットは slide_kit 側にある）
-  # assets:
-  #   - assets/images/
+  # 必要な画像の一覧は assets/images/README.md を参照。
+  assets:
+    - assets/images/

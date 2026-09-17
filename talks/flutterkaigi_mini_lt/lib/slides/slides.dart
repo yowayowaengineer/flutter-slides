@@ -2,7 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_deck/flutter_deck.dart';
 import 'package:slide_kit/slide_kit.dart';
 
+import 'aruaru_section.dart';
 import 'widgets.dart';
+
+/// FlutterKaigi のブランドグラデ（赤〜紫）。
+///
+/// タイトルスライドより前の「つかみ」パートで使う。ロゴはブランド規約で
+/// 使いにくいため、色だけを借りてイベントの文脈を示す。
+/// タイトル以降は岡山.Flutter 側の [AppColors.primaryGradient] に切り替える。
+const flutterKaigiGradient = LinearGradient(
+  begin: Alignment.topLeft,
+  end: Alignment.bottomRight,
+  colors: [Color(0xFFE81765), Color(0xFF9A1FBE), Color(0xFF5E2CE0)],
+  stops: [0.0, 0.55, 1.0],
+);
 
 /// FlutterKaigi mini #6 @Okayama LT
 /// 「Flutter初学者が知っておくべき4つのこと」
@@ -14,16 +27,20 @@ List<FlutterDeckSlideWidget> get slides => [
 
       const ProposalSlide(),
 
-      const BigMessageLayout(message: '応募しました 📮')
-          .asSlide('/applied'),
+      const BigMessageLayout(
+        message: '応募しました 📮',
+        gradient: flutterKaigiGradient,
+      ).asSlide('/applied'),
 
       const BigMessageLayout(
         message: 'その結果……',
         useGradient: false,
       ).asSlide('/result'),
 
-      const BigMessageLayout(message: '落ちました！')
-          .asSlide('/rejected'),
+      const BigMessageLayout(
+        message: '落ちました！',
+        gradient: flutterKaigiGradient,
+      ).asSlide('/rejected'),
 
       // 6→7 で「供養……させません！」と繋げる（つかみの肝・2ページ）
       const BigMessageLayout(
@@ -31,71 +48,81 @@ List<FlutterDeckSlideWidget> get slides => [
         useGradient: false,
       ).asSlide('/memorial'),
 
-      const BigMessageLayout(message: '……させません！')
-          .asSlide('/not-really'),
+      const BigMessageLayout(
+        message: '……させません！',
+        gradient: flutterKaigiGradient,
+      ).asSlide('/not-really'),
 
       // 自己紹介（参考と同じ: 写真＋タップでスポットライト）
       PhotoIntroSlide(),
 
-      // タイトル
-      TitleLayout(
-        titleSpans: const [
-          TextSpan(text: 'Flutter初学者が\n知っておくべき'),
-          TextSpan(text: '4つ', style: TextStyle(color: AppColors.blue)),
-          TextSpan(text: 'のこと'),
-        ],
-        subtitle: '供養のはずが本編です',
-        eventName: 'FlutterKaigi mini #6 @Okayama',
+      // タイトル。
+      //
+      // 実はこの時点でオーバーフローしている画像を出している。聞き手はここでは
+      // 気づかず、あるある①で「さっきのこれ」として回収する。
+      //
+      // 実ウィジェットで本当にオーバーフローさせない理由: 縞々はデバッグビルド
+      // でしか描画されないため、リリースビルドで登壇すると消えてしまう。
+      // 画像なら確実に出る。
+      const CenteredImageLayout(
+        image: AssetImage('assets/images/overflow_title.png'),
+        placeholder: ScreenshotPlaceholder(
+          'タイトル（オーバーフローさせたもの）',
+          accent: AppColors.blue,
+        ),
       ).asSlide('/title'),
 
-      // ══════════ 本編：Flutter あるある ══════════
-
-      const SectionDividerLayout(
-        label: 'MAIN',
-        title: 'Flutter あるある 4連発',
-        subtitle: '初学者がだいたい一度は踏むやつ',
-      ).asSlide('/aruaru-intro'),
-
       // あるある①：オーバーフロー
-      TwoColumnLayout(
-        title: 'あるある① オーバーフロー 🟨⬛',
-        left: const AruAruContent(
-          symptom: 'Row / Column に要素を並べたら\n画面からはみ出して\n黄色と黒の縞々が出る。',
-          errorText: 'A RenderFlex overflowed by\n137 pixels on the right.',
-          shotLabel: 'オーバーフローの縞々',
-        ),
-        right: const ScreenshotPlaceholder('オーバーフロー画面', accent: AppColors.pink),
-      ).asSlide('/aruaru-1'),
+      //
+      // 現象はタイトルスライドで見せ済みなので、同じ画像を二度出さず
+      // 説明から入る。②③④は「見せる」から始める。
+      ...const AruAruSection(
+        id: '1',
+        title: 'あるある① オーバーフロー',
+        symptom: '`Column` はウィジェットを\n'
+            '縦に並べるウィジェット。\n\n'
+            'その中のウィジェットが\n'
+            '`Column` の高さに収まらなかった状態。\n\n'
+            'はみ出した側に「縞々」が出て、\n'
+            '何 px はみ出したかを教えてくれる。',
+        // 1 枚目の画像の縞々に出ている文言そのもの。
+        // 画像を撮り直したら数字と向きを揃え直すこと。
+        errorText: 'BOTTOM OVERFLOWED BY 29 PIXELS',
+        photoAsset: 'assets/images/sticker_overflow.jpg',
+        photoPlaceholderLabel: 'FlutterKaigi 2025 のステッカー\n（だしゅまる＆オーバーフロー）',
+        photoAspectRatio: 1,
+        lesson: '初学者は\n必ず見ることになる。\n気をつけろ！',
+      ).slides,
 
       // あるある②：画像読み取りエラー
       TwoColumnLayout(
-        title: 'あるある② 画像が出ない 🖼️',
+        title: 'あるある② 画像が出ない',
         left: const AruAruContent(
           symptom: '画像を置いたのに表示されない。\nコンソールには例外が。',
           errorText: 'Unable to load asset:\n"images/logo.png".',
-          shotLabel: '画像が出ない画面',
         ),
         right: const ScreenshotPlaceholder('画像エラー画面', accent: AppColors.pink),
       ).asSlide('/aruaru-2'),
 
       // あるある③：テキストスタイル崩れ
       TwoColumnLayout(
-        title: 'あるある③ テキストが崩れる 🔤',
+        title: 'あるある③ テキストが崩れる',
         left: const AruAruContent(
           symptom: 'Text を置いただけなのに\n黄色い二重下線＆極太文字に。\n（Material の外に置くとコレ）',
           errorText: '// no error, but…\n黄色い下線の Text が爆誕',
-          shotLabel: '黄色い下線テキスト',
         ),
         right: const ScreenshotPlaceholder('崩れたテキスト', accent: AppColors.pink),
       ).asSlide('/aruaru-3'),
 
       // あるある④：State をクラスの外に書いた
       TwoColumnLayout(
-        title: 'あるある④ 状態がどこかおかしい 🧠',
+        title: 'あるある④ 状態がどこかおかしい',
         left: const AruAruContent(
-          symptom: '「なしなし」だけど……\nState をクラスの外に書いてしまい\nsetState しても・共有されて\n変な挙動に。',
+          symptom: 'エラーは出ない。なのに画面が変わらない。\n'
+              '状態を State クラスの外に書くと\n'
+              'setState しても反映されず、\n'
+              '別の画面とも共有されてしまう。',
           errorText: 'setState() called\nbut nothing updates…?',
-          shotLabel: '更新されない画面',
         ),
         right: const ScreenshotPlaceholder('状態バグの画面', accent: AppColors.pink),
       ).asSlide('/aruaru-4'),
@@ -107,13 +134,12 @@ List<FlutterDeckSlideWidget> get slides => [
         bullets: [
           Bullet('岡山で Flutter コミュニティやってます', emphasis: true),
           Bullet('もくもく会 / LT会 / 初学者歓迎'),
-          Bullet('「あるある」を一緒に踏んで一緒に抜け出そう'),
+          Bullet('「あるある」を踏んだ話を持ち寄って抜け出そう'),
           Bullet('気軽に参加してね！', color: AppColors.green),
         ],
       ).asSlide('/okayama-flutter'),
 
-      const BigMessageLayout(message: '供養、\n完了！\nありがとうございました 🙏')
-          .asSlide('/closing'),
+      const BigMessageLayout(message: 'ありがとうございました 🙏').asSlide('/closing'),
 
       // ══════════ Appendix（初学者向け解説）══════════
 
@@ -123,6 +149,21 @@ List<FlutterDeckSlideWidget> get slides => [
         subtitle: 'ここからは真面目に',
         accent: AppColors.green,
       ).asSlide('/appendix-intro'),
+
+      // 本編のあるある①は口頭で補う前提で削ってある。
+      // そこで話した中身を、見返せるようにこちらへ残す。
+      const BulletLayout(
+        title: 'Appendix① オーバーフローとは',
+        accent: AppColors.green,
+        bullets: [
+          Bullet('`Row` は横、`Column` は縦に子を並べる'),
+          Bullet('子の合計が親から渡された大きさを超えても、勝手には縮めてくれない'),
+          Bullet('基準は画面幅ではなく、親のウィジェットから渡された大きさ'),
+          Bullet('はみ出した側に縞々が出て、何 px 超えたかを教えてくれる'),
+          Bullet('縞々が出るのはデバッグビルドのときだけ', emphasis: true),
+          Bullet('リリースでは出ないが、はみ出した分は見切れたまま（直ってはいない）'),
+        ],
+      ).asSlide('/appendix-1-what'),
 
       const CodeLayout(
         title: 'Appendix① オーバーフローの直し方',
@@ -174,12 +215,14 @@ Image.asset(
       const CodeLayout(
         title: 'Appendix③ テキスト崩れの直し方',
         filename: 'text_style.dart',
-        code: '''// ❌ Material の外に Text を置くと黄色い下線
+        code: '''// ❌ Material（Scaffold）の外の Text は黄色い二重下線
 runApp(
-  Text('Hello'),
+  MaterialApp(
+    home: Center(child: Text('Hello')),
+  ),
 );
 
-// ✅ MaterialApp / Scaffold の配下に置く
+// ✅ Scaffold（Material）の配下に置く
 runApp(
   MaterialApp(
     home: Scaffold(
@@ -222,7 +265,8 @@ class _CounterState extends State<Counter> {
 class ProposalSlide extends FlutterDeckSlideWidget {
   const ProposalSlide()
       : super(
-          configuration: const FlutterDeckSlideConfiguration(route: '/proposal'),
+          configuration:
+              const FlutterDeckSlideConfiguration(route: '/proposal'),
         );
 
   @override
@@ -246,7 +290,8 @@ class ProposalSlide extends FlutterDeckSlideWidget {
               child: Image.asset(
                 'assets/images/dashumaru.png',
                 fit: BoxFit.contain,
-                errorBuilder: (context, error, stack) => const ScreenshotPlaceholder(
+                errorBuilder: (context, error, stack) =>
+                    const ScreenshotPlaceholder(
                   'だしゅまるくん（スピーカー特典）',
                   accent: AppColors.pink,
                 ),
@@ -275,18 +320,11 @@ class EventCoverSlide extends FlutterDeckSlideWidget {
           configuration: const FlutterDeckSlideConfiguration(route: '/cover'),
         );
 
-  static const _brandGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [Color(0xFFE81765), Color(0xFF9A1FBE), Color(0xFF5E2CE0)],
-    stops: [0.0, 0.55, 1.0],
-  );
-
   @override
   FlutterDeckSlide build(BuildContext context) {
     return FlutterDeckSlide.blank(
       backgroundBuilder: (context) => const DecoratedBox(
-        decoration: BoxDecoration(gradient: _brandGradient),
+        decoration: BoxDecoration(gradient: flutterKaigiGradient),
       ),
       builder: (context) => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 80),
