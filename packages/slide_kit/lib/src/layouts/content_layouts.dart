@@ -68,7 +68,8 @@ class BulletLayout extends StatelessWidget {
 }
 
 class _BulletRow extends StatelessWidget {
-  const _BulletRow({required this.bullet, required this.accent, this.depth = 0});
+  const _BulletRow(
+      {required this.bullet, required this.accent, this.depth = 0});
 
   final Bullet bullet;
   final Color accent;
@@ -77,8 +78,8 @@ class _BulletRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isChild = depth > 0;
-    final color = bullet.color ??
-        (bullet.emphasis ? accent : AppColors.deckText);
+    final color =
+        bullet.color ?? (bullet.emphasis ? accent : AppColors.deckText);
 
     return Padding(
       padding: EdgeInsets.only(left: depth * 48.0),
@@ -101,8 +102,10 @@ class _BulletRow extends StatelessWidget {
               ),
               const SizedBox(width: SlideSpacing.md),
               Expanded(
-                child: Text(
+                // バッククォートで囲んだ部分はコードチップになる。
+                child: InlineCodeText(
                   bullet.text,
+                  codeColor: accent,
                   style: SlideTextStyles.body.copyWith(
                     fontSize: isChild ? 28 : 32,
                     fontWeight:
@@ -212,7 +215,8 @@ class _AgendaRow extends StatelessWidget {
           Expanded(
             child: Text(
               text,
-              style: SlideTextStyles.subtitle.copyWith(fontWeight: FontWeight.w500),
+              style: SlideTextStyles.subtitle
+                  .copyWith(fontWeight: FontWeight.w500),
             ),
           ),
         ],
@@ -327,7 +331,8 @@ class _ComparisonCard extends StatelessWidget {
         children: [
           Text(
             heading,
-            style: SlideTextStyles.subtitle.copyWith(color: color, fontSize: 36),
+            style:
+                SlideTextStyles.subtitle.copyWith(color: color, fontSize: 36),
           ),
           const SizedBox(height: SlideSpacing.lg),
           for (final item in items) ...[
@@ -340,7 +345,8 @@ class _ComparisonCard extends StatelessWidget {
                 ),
                 const SizedBox(width: SlideSpacing.md),
                 Expanded(
-                  child: Text(item, style: SlideTextStyles.body.copyWith(fontSize: 28)),
+                  child: Text(item,
+                      style: SlideTextStyles.body.copyWith(fontSize: 28)),
                 ),
               ],
             ),
@@ -396,7 +402,9 @@ class CardsLayout extends StatelessWidget {
                 spacing: SlideSpacing.lg,
                 runSpacing: SlideSpacing.lg,
                 alignment: WrapAlignment.center,
-                children: [for (final card in cards) _PointCardTile(card: card)],
+                children: [
+                  for (final card in cards) _PointCardTile(card: card)
+                ],
               ),
             ),
           ),

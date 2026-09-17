@@ -58,7 +58,8 @@ class PhotoIntroSlide extends FlutterDeckSlideWidget {
             contents: [
               TargetContent(
                 align: ContentAlign.bottom,
-                builder: (context, controller) => _ProfilePopup(profile: profile),
+                builder: (context, controller) =>
+                    _ProfilePopup(profile: profile),
               ),
             ],
           ),

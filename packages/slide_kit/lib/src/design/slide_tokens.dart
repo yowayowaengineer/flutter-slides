@@ -103,9 +103,87 @@ class SlideDecoration {
       color: Colors.white.withValues(alpha: 0.04),
       borderRadius: BorderRadius.circular(20),
       border: Border.all(
-        color: (accent ?? Colors.white).withValues(alpha: accent != null ? 0.5 : 0.08),
+        color: (accent ?? Colors.white)
+            .withValues(alpha: accent != null ? 0.5 : 0.08),
         width: accent != null ? 2 : 1,
       ),
+    );
+  }
+}
+
+/// 本文中のバッククォートで囲んだ部分を、インラインのコード表記にする。
+///
+/// 地の文に `Row` / `Column` のようなクラス名を混ぜるとき、そこだけ角丸の
+/// チップにして区別する。
+///
+/// ```dart
+/// InlineCodeText('いまのは `Column` の中身が収まらなかった状態。')
+/// ```
+///
+/// バッククォートは対で使うこと（奇数番目の断片をコードとして扱うため、
+/// 閉じ忘れると以降の解釈がずれる）。
+class InlineCodeText extends StatelessWidget {
+  const InlineCodeText(
+    this.text, {
+    super.key,
+    this.style,
+    this.textAlign = TextAlign.start,
+    this.codeColor = AppColors.blue,
+  });
+
+  /// 表示する文字列。`` ` `` で囲んだ部分がコード表記になる。
+  final String text;
+
+  /// 地の文のスタイル。省略時は [SlideTextStyles.body]。
+  final TextStyle? style;
+
+  final TextAlign textAlign;
+
+  /// コード表記の文字色・枠色のベースになる色。
+  final Color codeColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final base = style ?? SlideTextStyles.body;
+    final parts = text.split('`');
+    final spans = <InlineSpan>[];
+
+    for (var i = 0; i < parts.length; i++) {
+      final part = parts[i];
+      if (part.isEmpty) continue;
+
+      // split の結果、奇数番目がバッククォートで囲まれていた中身になる。
+      if (i.isOdd) {
+        spans.add(
+          WidgetSpan(
+            alignment: PlaceholderAlignment.middle,
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+              decoration: BoxDecoration(
+                color: codeColor.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: codeColor.withValues(alpha: 0.35)),
+              ),
+              child: Text(
+                part,
+                style: SlideTextStyles.code.copyWith(
+                  fontSize: (base.fontSize ?? 32) * 0.85,
+                  color: codeColor,
+                  height: 1.2,
+                ),
+              ),
+            ),
+          ),
+        );
+      } else {
+        spans.add(TextSpan(text: part));
+      }
+    }
+
+    return RichText(
+      textAlign: textAlign,
+      text: TextSpan(style: base, children: spans),
     );
   }
 }

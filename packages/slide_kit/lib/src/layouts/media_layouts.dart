@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
@@ -126,7 +128,8 @@ class _WindowBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: SlideSpacing.md, vertical: 12),
+      padding:
+          const EdgeInsets.symmetric(horizontal: SlideSpacing.md, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.03),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
@@ -153,8 +156,10 @@ class _WindowBar extends StatelessWidget {
     );
   }
 
-  Widget _dot(Color color) =>
-      Container(width: 16, height: 16, decoration: BoxDecoration(color: color, shape: BoxShape.circle));
+  Widget _dot(Color color) => Container(
+      width: 16,
+      height: 16,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle));
 }
 
 /// 画像＋キャプションレイアウト。
@@ -194,6 +199,186 @@ class CaptionedImageLayout extends StatelessWidget {
             const SizedBox(height: SlideSpacing.md),
             Center(child: Text(caption!, style: SlideTextStyles.caption)),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+/// 画像を実寸のまま中央に置くレイアウト。
+///
+/// スライドの一部を切り出した画像を、実物のスライドに重なって見えるように
+/// 出すためのもの。
+///
+/// このデッキは `FlutterDeckSlideSize.responsive()`（既定）で動くため、
+/// flutter_deck は画面サイズに応じた拡大縮小を一切しない。文字は
+/// [SlideTextStyles] の固定 px のまま描画される。
+/// そこに全画面スクリーンショットを [BoxFit.cover] で敷くと、画像だけが
+/// 画面幅に比例して伸縮し、実物の文字サイズとズレる。登壇先のプロジェクタが
+/// 手元の PC と違う解像度だと露骨に出る。
+///
+/// このレイアウトは画像を伸縮させず、[width] / [height] で指定した論理 px
+/// （1920x1080 基準）で描画して中央に置く。どちらも省略すると画像本来の
+/// サイズになるので、高 DPI 環境で撮ったスクリーンショットを使うときは
+/// [width] を明示したほうが安全。
+///
+/// `asSlide()` と組み合わせて使う。実物のスライドと同じコンテンツ領域の
+/// 中央に載るので、切り出し位置さえ合っていれば重なって見える。
+class CenteredImageLayout extends StatelessWidget {
+  const CenteredImageLayout({
+    super.key,
+    required this.image,
+    this.width,
+    this.height,
+    this.placeholder,
+  });
+
+  /// 表示する画像。
+  final ImageProvider image;
+
+  /// 描画する幅（論理 px / 1920x1080 基準）。省略時は画像本来のサイズ。
+  final double? width;
+
+  /// 描画する高さ（論理 px / 1920x1080 基準）。省略時は画像本来のサイズ。
+  final double? height;
+
+  /// 画像が読み込めなかったときの代替表示（省略可）。
+  final Widget? placeholder;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Image(
+        image: image,
+        width: width,
+        height: height,
+        // 伸縮させない。width/height 指定時はその枠に収める。
+        fit: width == null && height == null ? BoxFit.none : BoxFit.contain,
+        errorBuilder: placeholder == null
+            ? null
+            : (context, error, stack) => placeholder!,
+      ),
+    );
+  }
+}
+
+/// 画像 1 枚を余白なしでスライド全面に見せるレイアウト。
+///
+/// 「まず現象をどんと見せる」つかみのスライド向け。[CaptionedImageLayout] と
+/// 違い、見出し・パディング・角丸を一切付けない。
+///
+/// 画像がスライド（16:9）と同じ比率とは限らないため、既定の [fit] は
+/// [BoxFit.contain]。縦長のスクリーンショットや写真を渡しても切り落とさない。
+/// 16:9 の画像を隅まで敷き詰めたいときだけ [BoxFit.cover] を指定する。
+///
+/// [fit] が [BoxFit.contain] のときにできる余白は既定でデッキ背景色になるが、
+/// [blurBackdrop] を有効にすると画像自身をぼかして敷き、額縁のように見せる。
+class FullBleedImageLayout extends StatelessWidget {
+  const FullBleedImageLayout({
+    super.key,
+    required this.image,
+    this.fit = BoxFit.contain,
+    this.background,
+    this.blurBackdrop = false,
+    this.caption,
+    this.placeholder,
+  });
+
+  /// 表示する画像。
+  final ImageProvider image;
+
+  /// 画像の収め方。既定は切り落とさない [BoxFit.contain]。
+  final BoxFit fit;
+
+  /// 余白を塗る色。既定は [AppColors.deckBackground]。
+  final Color? background;
+
+  /// 余白を画像自身のぼかしで埋めるか。
+  ///
+  /// 縦長・横長など比率の合わない画像を、余白を目立たせずに見せたいときに使う。
+  /// [fit] が [BoxFit.cover] で余白が出ない場合は指定しても効果がない。
+  final bool blurBackdrop;
+
+  /// 画像の下端に重ねる小さなキャプション（省略可）。
+  ///
+  /// どんな画像の上でも読めるよう、下端に暗いグラデーションを敷く。
+  final String? caption;
+
+  /// 画像が読み込めなかったときに代わりに表示するウィジェット（省略可）。
+  ///
+  /// 実画像が揃うまでプレースホルダを出しておきたいときに使う。
+  final Widget? placeholder;
+
+  @override
+  Widget build(BuildContext context) {
+    final fill = background ?? AppColors.deckBackground;
+
+    Widget imageWidget = Image(
+      image: image,
+      fit: fit,
+      width: double.infinity,
+      height: double.infinity,
+      errorBuilder:
+          placeholder == null ? null : (context, error, stack) => placeholder!,
+    );
+
+    if (blurBackdrop) {
+      imageWidget = Stack(
+        fit: StackFit.expand,
+        children: [
+          ImageFiltered(
+            imageFilter: ui.ImageFilter.blur(sigmaX: 40, sigmaY: 40),
+            child: Image(
+              image: image,
+              fit: BoxFit.cover,
+              // ぼかした背景は主役ではないので少し沈ませる。
+              color: Colors.black.withValues(alpha: 0.4),
+              colorBlendMode: BlendMode.darken,
+              errorBuilder: (context, error, stack) => const SizedBox.shrink(),
+            ),
+          ),
+          imageWidget,
+        ],
+      );
+    }
+
+    return ColoredBox(
+      color: fill,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          imageWidget,
+          if (caption != null)
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                width: double.infinity,
+                // 下端はフッター（高さ 40 + スライドパディング 16）を避ける。
+                padding: const EdgeInsets.fromLTRB(
+                  SlideSpacing.horizontal,
+                  SlideSpacing.xl,
+                  SlideSpacing.horizontal,
+                  80,
+                ),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withValues(alpha: 0.7),
+                    ],
+                  ),
+                ),
+                child: Text(
+                  caption!,
+                  textAlign: TextAlign.center,
+                  style: SlideTextStyles.caption.copyWith(
+                    color: Colors.white.withValues(alpha: 0.9),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
