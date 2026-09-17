@@ -11,6 +11,7 @@ workspace:
   - packages/slide_kit
   - talks/_template
   - talks/_gallery
+  - talks/flutterkaigi_mini_lt
 
 dev_dependencies:
   melos: ^6.0.0

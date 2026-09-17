@@ -149,17 +149,21 @@ class BigMessageLayout extends StatelessWidget {
       style: SlideTextStyles.display.copyWith(fontSize: 96),
     );
 
+    // 文字数・行数が多くても枠からはみ出さないよう自動で縮小する。
     return SlideFrame(
       alignment: Alignment.center,
-      child: useGradient
-          ? ShaderMask(
-              shaderCallback: (bounds) => gradient.createShader(bounds),
-              child: DefaultTextStyle.merge(
-                style: const TextStyle(color: Colors.white),
-                child: text,
-              ),
-            )
-          : text,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: useGradient
+            ? ShaderMask(
+                shaderCallback: (bounds) => gradient.createShader(bounds),
+                child: DefaultTextStyle.merge(
+                  style: const TextStyle(color: Colors.white),
+                  child: text,
+                ),
+              )
+            : text,
+      ),
     );
   }
 }

@@ -1,0 +1,37 @@
+name: flutterkaigi_mini_lt
+description: "FlutterKaigi mini #6 @Okayama LT: Flutter初学者が知っておくべき◯個のこと"
+publish_to: none
+
+version: 1.0.0+1
+
+resolution: workspace
+
+environment:
+  sdk: ^3.6.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # 共通部品
+  slide_kit:
+    path: ../../packages/slide_kit
+
+  # 登壇でよく使う依存（必要に応じて増減）
+  flutter_deck: ^0.28.1
+  flutter_screenutil: ^5.9.3
+  gap: ^3.0.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  # 登壇固有の画像はここに追加する（共通アセットは slide_kit 側にある）
+  # assets:
+  #   - assets/images/

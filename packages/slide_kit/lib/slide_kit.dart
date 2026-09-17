@@ -19,6 +19,7 @@ export 'src/layouts/content_slide.dart';
 export 'src/layouts/heading_layouts.dart';
 export 'src/layouts/media_layouts.dart';
 export 'src/model/speaker_profile.dart';
+export 'src/slides/photo_intro_slide.dart';
 export 'src/slides/who_am_i_slide.dart';
 export 'src/theme/app_colors.dart';
 export 'src/theme/slide_theme.dart';
