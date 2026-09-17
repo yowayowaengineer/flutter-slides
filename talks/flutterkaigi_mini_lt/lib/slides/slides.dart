@@ -9,8 +9,8 @@ import 'widgets.dart';
 List<FlutterDeckSlideWidget> get slides => [
       // ══════════ つかみ（落選LT供養…させない）══════════
 
-      // FlutterKaigi 2026 ロゴページ（あとでロゴ画像に差し替え）
-      const KaigiLogoSlide(),
+      // FlutterKaigi 2026 のカバー（ロゴはブランド規約NGのため文字＋ブランドグラデで表現）
+      const EventCoverSlide(),
 
       const BigMessageLayout(
         message: 'LT 登壇の\nプロポーザル',
@@ -218,23 +218,68 @@ class _CounterState extends State<Counter> {
       ).asSlide('/appendix-4'),
     ];
 
-/// つかみ1枚目。FlutterKaigi 2026 のロゴ差し込み枠。
-/// ロゴ画像を用意したら [CaptionedImageLayout] に差し替える。
-class KaigiLogoSlide extends FlutterDeckSlideWidget {
-  const KaigiLogoSlide()
+/// つかみ1枚目。イベントのカバー。
+///
+/// FlutterKaigi のロゴはブランド規約で使いにくいため、公式サイトの
+/// ブランドグラデ（赤〜紫）を背景に、白のゴシック太字でイベント名だけを出す。
+class EventCoverSlide extends FlutterDeckSlideWidget {
+  const EventCoverSlide()
       : super(
-          configuration: const FlutterDeckSlideConfiguration(route: '/kaigi-logo'),
+          configuration: const FlutterDeckSlideConfiguration(route: '/cover'),
         );
+
+  static const _brandGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFFE81765), Color(0xFF9A1FBE), Color(0xFF5E2CE0)],
+    stops: [0.0, 0.55, 1.0],
+  );
 
   @override
   FlutterDeckSlide build(BuildContext context) {
     return FlutterDeckSlide.blank(
-      builder: (context) => const Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: SlideSpacing.horizontal,
-          vertical: SlideSpacing.vertical,
+      backgroundBuilder: (context) => const DecoratedBox(
+        decoration: BoxDecoration(gradient: _brandGradient),
+      ),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 80),
+        child: Center(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Text(
+                  'FlutterKaigi mini #6',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 96,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    letterSpacing: 1,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // 2行目「@Okayama」をドンと大きく・極太・少し傾けて馬鹿っぽく
+                Transform.rotate(
+                  angle: -0.04,
+                  child: const Text(
+                    '@Okayama',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 240,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                      letterSpacing: 2,
+                      height: 1,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
-        child: ScreenshotPlaceholder('FlutterKaigi 2026 ロゴページ'),
       ),
     );
   }
