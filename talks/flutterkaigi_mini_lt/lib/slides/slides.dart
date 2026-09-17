@@ -12,10 +12,7 @@ List<FlutterDeckSlideWidget> get slides => [
       // FlutterKaigi 2026 のカバー（ロゴはブランド規約NGのため文字＋ブランドグラデで表現）
       const EventCoverSlide(),
 
-      const BigMessageLayout(
-        message: 'LT 登壇の\nプロポーザル',
-        useGradient: false,
-      ).asSlide('/proposal'),
+      const ProposalSlide(),
 
       const BigMessageLayout(message: '応募しました 📮')
           .asSlide('/applied'),
@@ -217,6 +214,56 @@ class _CounterState extends State<Counter> {
         accent: AppColors.green,
       ).asSlide('/appendix-4'),
     ];
+
+/// プロポーザル。スピーカー特典のぬいぐるみ「だしゅまるくん」欲しさに応募した、の図。
+///
+/// 画像は `assets/images/dashumaru.png` を置いて pubspec の assets を有効化すると
+/// 表示される。未配置の間はプレースホルダにフォールバックする。
+class ProposalSlide extends FlutterDeckSlideWidget {
+  const ProposalSlide()
+      : super(
+          configuration: const FlutterDeckSlideConfiguration(route: '/proposal'),
+        );
+
+  @override
+  FlutterDeckSlide build(BuildContext context) {
+    return FlutterDeckSlide.blank(
+      builder: (context) => Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: SlideSpacing.horizontal,
+          vertical: SlideSpacing.vertical,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'LT 登壇のプロポーザル',
+              textAlign: TextAlign.center,
+              style: SlideTextStyles.headline.copyWith(fontSize: 56),
+            ),
+            const SizedBox(height: SlideSpacing.lg),
+            Expanded(
+              child: Image.asset(
+                'assets/images/dashumaru.png',
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stack) => const ScreenshotPlaceholder(
+                  'だしゅまるくん（スピーカー特典）',
+                  accent: AppColors.pink,
+                ),
+              ),
+            ),
+            const SizedBox(height: SlideSpacing.md),
+            Text(
+              '…このぬいぐるみ「だしゅまるくん」欲しさに 📮',
+              textAlign: TextAlign.center,
+              style: SlideTextStyles.caption.copyWith(fontSize: 28),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 /// つかみ1枚目。イベントのカバー。
 ///
