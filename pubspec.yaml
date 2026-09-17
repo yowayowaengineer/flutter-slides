@@ -10,6 +10,7 @@ environment:
 workspace:
   - packages/slide_kit
   - talks/_template
+  - talks/_gallery
 
 dev_dependencies:
   melos: ^6.0.0

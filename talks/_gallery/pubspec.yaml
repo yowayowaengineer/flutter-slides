@@ -1,0 +1,30 @@
+name: gallery
+description: slide_kit のレイアウト部品カタログ（デザイン確認用の登壇）。
+publish_to: none
+
+version: 1.0.0+1
+
+resolution: workspace
+
+environment:
+  sdk: ^3.6.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  slide_kit:
+    path: ../../packages/slide_kit
+
+  flutter_deck: ^0.28.1
+  flutter_screenutil: ^5.9.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
