@@ -10,9 +10,11 @@ name: Deploy slides to GitHub Pages
 # 事前に一度だけ: リポジトリの Settings → Pages → Build and deployment →
 # Source を「GitHub Actions」に設定する。
 
+# デプロイは `v*` タグを push したときのみ（毎 push では走らせない）。
+# 手動実行も可（Actions タブ → Run workflow）。
 on:
   push:
-    branches: [main]
+    tags: ['v*']
   workflow_dispatch:
 
 permissions:
