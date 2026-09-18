@@ -1,38 +1,54 @@
-name: Deploy slides to GitHub Pages
+name: Deploy a talk to GitHub Pages
 
-# talks/ 配下の各登壇を Flutter Web でビルドし、登壇ごとのサブパスで公開する。
-#   https://<owner>.github.io/<repo>/                 … 登壇一覧
-#   https://<owner>.github.io/<repo>/<talk>/          … 各登壇
+# 登壇資料 1 本ずつを GitHub Pages に公開する。
+#   https://<owner>.github.io/<repo>/            … 登壇一覧（自動生成）
+#   https://<owner>.github.io/<repo>/<talk>/     … 各登壇
 #
-# 公開対象は talks/ 直下の登壇のうち、先頭が _ でないもの。
-# 先頭 _ （_template / _gallery などの内部用）は公開しない。
+# 公開したい登壇のフォルダ名でタグを打つ:
+#   git tag flutterkaigi_mini_lt-v1
+#   git push origin flutterkaigi_mini_lt-v1
+# → タグ名から "-v..." を除いた talks/<name> だけをビルドして公開する。
+# 他の登壇は gh-pages 上にそのまま残る（keep_files）。
 #
-# 事前に一度だけ: リポジトリの Settings → Pages → Build and deployment →
-# Source を「GitHub Actions」に設定する。
+# 事前に一度だけ: Settings → Pages → Build and deployment →
+# Source を「Deploy from a branch」/ Branch を「gh-pages」「/ (root)」に設定。
 
-# デプロイは `v*` タグを push したときのみ（毎 push では走らせない）。
-# 手動実行も可（Actions タブ → Run workflow）。
 on:
   push:
-    tags: ['v*']
+    tags: ['*-v*']
   workflow_dispatch:
+    inputs:
+      talk:
+        description: '公開する登壇フォルダ名（talks/ 直下）'
+        required: true
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
+# gh-pages への push が競合しないよう直列化する。
 concurrency:
-  group: pages
-  cancel-in-progress: true
+  group: gh-pages
+  cancel-in-progress: false
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      # .fvmrc に固定した Flutter バージョンをそのまま CI でも使う。
+      - name: Resolve talk name
+        id: t
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            talk="${{ github.event.inputs.talk }}"
+          else
+            talk="${GITHUB_REF_NAME%-v*}"   # 例: flutterkaigi_mini_lt-v1 → flutterkaigi_mini_lt
+          fi
+          echo "talk=$talk" >> "$GITHUB_OUTPUT"
+          test -f "talks/$talk/pubspec.yaml" || { echo "::error::talks/$talk/pubspec.yaml が見つかりません"; exit 1; }
+          test -d "talks/$talk/web" || { echo "::error::talks/$talk に web がありません"; exit 1; }
+
       - name: Read Flutter version from .fvmrc
         id: fvm
         run: echo "flutter=$(jq -r .flutter .fvmrc)" >> "$GITHUB_OUTPUT"
@@ -43,33 +59,41 @@ jobs:
           channel: stable
           cache: true
 
-      # pub workspace なのでルートで一度解決すれば各メンバーに行き渡る。
-      - name: Resolve workspace
-        run: flutter pub get
-
-      - name: Build each talk
+      - name: Build the talk
         run: |
           set -euo pipefail
           repo="${{ github.event.repository.name }}"
+          talk="${{ steps.t.outputs.talk }}"
+          flutter pub get
+          ( cd "talks/$talk" && flutter build web --release --base-href "/$repo/$talk/" )
 
-          mkdir -p public
+      # 対象の登壇だけを <talk>/ に配置。他の登壇は残す。
+      - name: Publish talk to gh-pages/<talk>
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: talks/${{ steps.t.outputs.talk }}/build/web
+          destination_dir: ${{ steps.t.outputs.talk }}
+          keep_files: true
+
+      # gh-pages 上に存在する登壇を全部拾って一覧 index を作り直す。
+      - name: Rebuild index from gh-pages
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp -d)"
+          git clone --branch gh-pages --depth 1 \
+            "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" \
+            "$tmp/gh"
+
           links=""
-          for dir in talks/*/; do
-            name="$(basename "$dir")"
-            [ -f "${dir}pubspec.yaml" ] || continue
-            [ -d "${dir}web" ] || continue
-            # 先頭が _ の登壇（_template / _gallery などの内部用）は公開しない。
-            case "$name" in _*) echo "skip $name"; continue;; esac
-
-            echo "::group::build $name"
-            ( cd "$dir" && flutter build web --release --base-href "/$repo/$name/" )
-            mkdir -p "public/$name"
-            cp -r "${dir}build/web/." "public/$name/"
+          for d in "$tmp"/gh/*/; do
+            name="$(basename "$d")"
+            case "$name" in .*) continue;; esac
+            [ -f "$d/index.html" ] || continue
             links="${links}      <li><a href=\"./$name/\">$name</a></li>\n"
-            echo "::endgroup::"
           done
 
-          # 一覧ページ（ダークテーマ）。
+          mkdir -p site
           {
             echo '<!doctype html>'
             echo '<html lang="ja"><head><meta charset="utf-8">'
@@ -85,21 +109,12 @@ jobs:
             echo '<ul>'
             printf "%b" "$links"
             echo '</ul></body></html>'
-          } > public/index.html
+          } > site/index.html
+          touch site/.nojekyll
 
-          # GitHub Pages で Jekyll 処理を無効化（保険）。
-          touch public/.nojekyll
-
-      - uses: actions/upload-pages-artifact@v3
+      - name: Publish index
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: public
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: site
+          keep_files: true
