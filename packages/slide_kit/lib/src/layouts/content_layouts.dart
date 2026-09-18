@@ -235,6 +235,7 @@ class TwoColumnLayout extends StatelessWidget {
     this.leftFlex = 1,
     this.rightFlex = 1,
     this.accent = AppColors.blue,
+    this.padding,
   });
 
   final String? title;
@@ -244,9 +245,14 @@ class TwoColumnLayout extends StatelessWidget {
   final int rightFlex;
   final Color accent;
 
+  /// フレームの余白（省略時は [SlideFrame] の既定）。縦長画像を大きく見せたい
+  /// ときは上下の余白を詰める。
+  final EdgeInsetsGeometry? padding;
+
   @override
   Widget build(BuildContext context) {
     return SlideFrame(
+      padding: padding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

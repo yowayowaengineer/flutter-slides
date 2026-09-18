@@ -94,25 +94,50 @@ List<FlutterDeckSlideWidget> get slides => [
         lesson: '初学者は\n必ず見ることになる。\n気をつけろ！',
       ).slides,
 
-      // あるある②：画像読み取りエラー
-      TwoColumnLayout(
+      // あるある②：画像が出ない
+      //
+      // ②〜④は「見せる」から始める（①はタイトルで見せ済みなので説明から）。
+      // 「見せる」＝実際に出た「画像が出ない」エラーのスクショ。
+      // 説明の右は、存在しないパスの生の Image.asset。デバッグではコンソールに
+      // エラーが出るが、リリース（登壇本番）ではエラーにならず画像が出ないだけ
+      // ＝「画像が出ない」をその場でライブ実演できる。
+      ...AruAruSection(
+        id: '2',
         title: 'あるある② 画像が出ない',
-        left: const AruAruContent(
-          symptom: '画像を置いたのに表示されない。\nコンソールには例外が。',
-          errorText: 'Unable to load asset:\n"images/logo.png".',
+        shotAsset: 'assets/images/aruaru2_shot.png',
+        shotPlaceholderLabel: '画像が出ないエラー',
+        symptom: '`Image.asset` で画像を出したのに\n'
+            '真っ白、もしくは例外。\n\n'
+            'たいていは `pubspec.yaml` の\n'
+            '`assets:` への登録忘れか、\n'
+            'パス・インデントのミス。',
+        errorText: 'Unable to load asset:\n"assets/images/logo.png"',
+        // わざと存在しないパス。errorBuilder は付けない（素の挙動を見せる）。
+        // 上下中央に置く（実画像が入ったときも中央表示）。
+        explainRight: Center(
+          child: Image.asset('assets/images/dashumaru_typo.png'),
         ),
-        right: const ScreenshotPlaceholder('画像エラー画面', accent: AppColors.pink),
-      ).asSlide('/aruaru-2'),
+        lesson: '画像が出ない時は\nまず pubspec を疑え！',
+      ).slides,
 
-      // あるある③：テキストスタイル崩れ
-      TwoColumnLayout(
+      // あるある③：テキストが崩れる
+      // 見せる=崩れる様子の gif（縦長 856x1746 なので幅で縮める）、
+      // 説明の右=正常ケースの gif。
+      ...const AruAruSection(
+        id: '3',
         title: 'あるある③ テキストが崩れる',
-        left: const AruAruContent(
-          symptom: 'Text を置いただけなのに\n黄色い二重下線＆極太文字に。\n（Material の外に置くとコレ）',
-          errorText: '// no error, but…\n黄色い下線の Text が爆誕',
-        ),
-        right: const ScreenshotPlaceholder('崩れたテキスト', accent: AppColors.pink),
-      ).asSlide('/aruaru-3'),
+        shotAsset: 'assets/images/aruaru3_shot.gif',
+        shotPlaceholderLabel: 'テキストが崩れる様子（gif）',
+        shotWidth: 400,
+        symptom: '`Text` を置いただけなのに\n'
+            '黄色い二重下線＆極太文字に。\n\n'
+            '`Material`（`Scaffold`）の外に\n'
+            '`Text` を置くとこうなる。',
+        errorText: '// エラーは出ない\n黄色い下線の Text が爆誕',
+        photoAsset: 'assets/images/aruaru3_ok.gif',
+        photoPlaceholderLabel: '正常ケースの動画（gif）',
+        lesson: '黄色い下線が出たら\nMaterial の外にいる合図！',
+      ).slides,
 
       // あるある④：State をクラスの外に書いた
       TwoColumnLayout(

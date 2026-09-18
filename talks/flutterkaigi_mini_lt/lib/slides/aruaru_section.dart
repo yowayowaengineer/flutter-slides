@@ -39,6 +39,7 @@ class AruAruSection {
     this.photoAsset,
     this.photoPlaceholderLabel,
     this.photoAspectRatio,
+    this.explainRight,
   })  : assert(
           shotAsset == null || shotPlaceholderLabel != null,
           'shotAsset を指定するときは shotPlaceholderLabel も指定してください',
@@ -88,6 +89,13 @@ class AruAruSection {
   /// 未配置時のプレースホルダも同じ枠に収まる。
   final double? photoAspectRatio;
 
+  /// 説明スライドの右カラムに置く任意ウィジェット。
+  ///
+  /// 指定すると [photoAsset] / [photoPlaceholderLabel] より優先される。
+  /// 「存在しない画像パスの生の `Image.asset`」を渡して、リリースビルドでは
+  /// エラーにならず画像が出ないだけ、という挙動を実演するのに使う。
+  final Widget? explainRight;
+
   /// 「教訓」のキメの一言。
   final String lesson;
 
@@ -108,22 +116,56 @@ class AruAruSection {
           ).asSlide('/aruaru-$id-shot'),
 
         // ② 説明
-        TwoColumnLayout(
-          title: title,
-          left: AruAruContent(symptom: symptom, errorText: errorText),
-          right: photoAsset == null
-              ? ScreenshotPlaceholder(
-                  photoPlaceholderLabel ?? title,
-                  accent: AppColors.pink,
-                )
-              : AssetPhoto(
-                  photoAsset!,
-                  placeholderLabel: photoPlaceholderLabel!,
-                  aspectRatio: photoAspectRatio,
-                ),
-        ).asSlide('/aruaru-$id'),
+        _explainSlide(),
 
         // ③ 教訓
         BigMessageLayout(message: lesson).asSlide('/aruaru-$id-lesson'),
       ];
+
+  /// 説明スライド。右カラムの中身は次の優先順で決める:
+  /// [explainRight] → [photoAsset] → [photoPlaceholderLabel] → （どれも無ければ全幅テキスト）。
+  FlutterDeckSlideWidget _explainSlide() {
+    final Widget? right = explainRight ??
+        (photoAsset != null
+            ? AssetPhoto(
+                photoAsset!,
+                placeholderLabel: photoPlaceholderLabel!,
+                aspectRatio: photoAspectRatio,
+              )
+            : photoPlaceholderLabel != null
+                ? ScreenshotPlaceholder(
+                    photoPlaceholderLabel!,
+                    accent: AppColors.pink,
+                  )
+                : null);
+
+    if (right == null) return _explainFullWidth().asSlide('/aruaru-$id');
+
+    return TwoColumnLayout(
+      title: title,
+      left: AruAruContent(symptom: symptom, errorText: errorText),
+      right: right,
+      // 縦長の gif/写真を少しでも大きく見せるため、上下の余白を詰める。
+      padding: const EdgeInsets.symmetric(
+        horizontal: SlideSpacing.horizontal,
+        vertical: SlideSpacing.lg,
+      ),
+    ).asSlide('/aruaru-$id');
+  }
+
+  /// 右カラムを持たない全幅の「説明」（見出し＋症状＋エラー）。
+  Widget _explainFullWidth() {
+    return SlideFrame(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SlideHeading(title, accent: AppColors.pink),
+          const SizedBox(height: SlideSpacing.xl),
+          Expanded(
+            child: AruAruContent(symptom: symptom, errorText: errorText),
+          ),
+        ],
+      ),
+    );
+  }
 }
