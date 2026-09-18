@@ -187,7 +187,7 @@ List<FlutterDeckSlideWidget> get slides => [
           Bullet('岡山で Flutter コミュニティやってます', emphasis: true),
           Bullet('もくもく会 / LT会 / 初学者歓迎'),
           Bullet('「あるある」を踏んだ話を持ち寄って抜け出そう'),
-          Bullet('気軽に参加してね！', color: AppColors.green),
+          Bullet('気軽に参加してね！', color: AppColors.pink),
         ],
       ).asSlide('/okayama-flutter'),
 
