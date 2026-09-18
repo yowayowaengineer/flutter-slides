@@ -244,6 +244,19 @@ Row(
         accent: AppColors.green,
       ).asSlide('/appendix-1'),
 
+      const BulletLayout(
+        title: 'Appendix② 画像が出ないとは',
+        accent: AppColors.green,
+        bullets: [
+          Bullet('画像は `pubspec.yaml` の `assets:` に宣言したものだけが同梱される'),
+          Bullet('宣言し忘れ・パス違い・インデントミスで「Unable to load asset」'),
+          Bullet('`assets:` を変えたら `flutter pub get` が必要'),
+          Bullet('反映はホットリロードではなくホットリスタート（or 再ビルド）',
+              emphasis: true),
+          Bullet('`- assets/images/` とフォルダ指定で中身をまとめて含められる'),
+        ],
+      ).asSlide('/appendix-2-what'),
+
       const CodeLayout(
         title: 'Appendix② 画像が出ないの直し方',
         filename: 'pubspec.yaml',
@@ -263,6 +276,19 @@ Image.asset(
 )''',
         accent: AppColors.green,
       ).asSlide('/appendix-2'),
+
+      const BulletLayout(
+        title: 'Appendix③ テキストが崩れるとは',
+        accent: AppColors.green,
+        bullets: [
+          Bullet('`Text` は祖先の `DefaultTextStyle` からスタイルを受け取る'),
+          Bullet('`MaterialApp` / `Scaffold` の配下だと適切なスタイルが提供される'),
+          Bullet('その外だと fallback の黄色い二重下線になる（デバッグの警告表示）',
+              emphasis: true),
+          Bullet('`runApp` 直下に素の `Text` を置くと起きがち'),
+          Bullet('対策: Material 配下に置く／必要なら `DefaultTextStyle` で囲む'),
+        ],
+      ).asSlide('/appendix-3-what'),
 
       const CodeLayout(
         title: 'Appendix③ テキスト崩れの直し方',
@@ -287,6 +313,19 @@ runApp(
 // スタイルは Theme.textTheme か TextStyle.copyWith で''',
         accent: AppColors.green,
       ).asSlide('/appendix-3'),
+
+      const BulletLayout(
+        title: 'Appendix④ 入力が崩れるとは',
+        accent: AppColors.green,
+        bullets: [
+          Bullet('`build` は状態が変わるたび何度も呼ばれる'),
+          Bullet('その中で `TextEditingController` を new すると毎回別物になる'),
+          Bullet('IME（日本語）の変換途中がリセットされ「？！おえういあ」に',
+              emphasis: true),
+          Bullet('Controller は `State` のフィールドに持ち `initState` で 1 回だけ生成'),
+          Bullet('`dispose` で破棄してリークを防ぐ'),
+        ],
+      ).asSlide('/appendix-4-what'),
 
       const CodeLayout(
         title: 'Appendix④ Controller は initState で',
@@ -318,9 +357,15 @@ void dispose() {
 
 /// あるある → コミュニティ紹介 の橋渡し。Flutter初学者への応援メッセージ。
 Widget _messageSlide() {
+  // 非強調テキストは小さめ・行間も詰めて、縦に収める。
+  final body = SlideTextStyles.body.copyWith(fontSize: 32);
   return SlideFrame(
-    // あるあるのタイトルと同じ高さから始めたいので上寄せ。
+    // あるあるのタイトルと同じ高さから始めたいので上寄せ。上下パディングも縮小。
     alignment: Alignment.topCenter,
+    padding: const EdgeInsets.symmetric(
+      horizontal: SlideSpacing.horizontal,
+      vertical: 48,
+    ),
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -329,31 +374,22 @@ Widget _messageSlide() {
           textAlign: TextAlign.center,
           style: SlideTextStyles.title.copyWith(
             color: AppColors.blue,
-            fontSize: 48,
+            fontSize: 40,
           ),
         ),
-        const SizedBox(height: SlideSpacing.xl),
-        Text(
-          'あるあるは、みんなが通る道。',
-          textAlign: TextAlign.center,
-          style: SlideTextStyles.body.copyWith(fontSize: 40),
-        ),
-        const SizedBox(height: SlideSpacing.md),
-        Text(
-          'ここにいるベテランもみんな経験しています。',
-          textAlign: TextAlign.center,
-          style: SlideTextStyles.body.copyWith(fontSize: 40),
-        ),
-        const SizedBox(height: SlideSpacing.xl),
-        _gradientWord('怖がらず、書いていこう！', fontSize: 56),
-        const SizedBox(height: SlideSpacing.xl),
-        Text(
-          'そして、一人で悩まないで',
-          textAlign: TextAlign.center,
-          style: SlideTextStyles.body.copyWith(fontSize: 40),
-        ),
-        const SizedBox(height: SlideSpacing.md),
-        _gradientWord('聞いていこう！', fontSize: 56),
+        const SizedBox(height: SlideSpacing.lg),
+        Text('あるあるは、みんなが通る道。',
+            textAlign: TextAlign.center, style: body),
+        const SizedBox(height: SlideSpacing.sm),
+        Text('ここにいるベテランもみんな経験しています。',
+            textAlign: TextAlign.center, style: body),
+        const SizedBox(height: SlideSpacing.lg),
+        _gradientWord('怖がらず、書いていこう！', fontSize: 52),
+        const SizedBox(height: SlideSpacing.lg),
+        Text('そして、一人で悩まないで',
+            textAlign: TextAlign.center, style: body),
+        const SizedBox(height: SlideSpacing.sm),
+        _gradientWord('聞いていこう！', fontSize: 52),
       ],
     ),
   );
