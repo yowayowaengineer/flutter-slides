@@ -139,18 +139,26 @@ List<FlutterDeckSlideWidget> get slides => [
         lesson: '黄色い下線が出たら\nMaterial の外にいる合図！',
       ).slides,
 
-      // あるある④：State をクラスの外に書いた
-      TwoColumnLayout(
-        title: 'あるある④ 状態がどこかおかしい',
-        left: const AruAruContent(
-          symptom: 'エラーは出ない。なのに画面が変わらない。\n'
-              '状態を State クラスの外に書くと\n'
-              'setState しても反映されず、\n'
-              '別の画面とも共有されてしまう。',
-          errorText: 'setState() called\nbut nothing updates…?',
-        ),
-        right: const ScreenshotPlaceholder('状態バグの画面', accent: AppColors.pink),
-      ).asSlide('/aruaru-4'),
+      // あるある④：入力が「？！おえういあ」になる
+      // 記事: https://qiita.com/yowayowaengineer/items/b59ff3f8d6a2ce416220
+      // 冒頭の「見せる」は日本語入力が崩れる様子の gif。説明は全幅テキスト。
+      ...const AruAruSection(
+        id: '4',
+        title: 'あるある④ 入力が「？！おえういあ」',
+        shotAsset: 'assets/images/aruaru4_shot.gif',
+        shotPlaceholderLabel: '日本語入力が崩れる様子（gif）',
+        shotWidth: 400,
+        symptom: 'TextField に日本語を打つと\n'
+            '「？！おえういあ」と\n'
+            'おかしな順で入力される。\n\n'
+            '原因は `build` の中で\n'
+            '`TextEditingController` を\n'
+            '毎回作り直していること。',
+        errorText: '// エラーは出ない\n入力: ？！おえういあ',
+        photoAsset: 'assets/images/aruaru4_ok.gif',
+        photoPlaceholderLabel: '正常ケースの動画（gif）',
+        lesson: 'Controller は build で作るな\ninitState で 1 回だけ！',
+      ).slides,
 
       // ══════════ クロージング ══════════
 
@@ -261,23 +269,28 @@ runApp(
       ).asSlide('/appendix-3'),
 
       const CodeLayout(
-        title: 'Appendix④ 状態の持ち方',
-        filename: 'state.dart',
-        code: '''// ❌ State の外（トップレベル）に状態
-int count = 0;
+        title: 'Appendix④ Controller は initState で',
+        filename: 'controller.dart',
+        code: '''// ❌ build の中で毎回 Controller を作る
+Widget build(BuildContext context) {
+  final controller = TextEditingController(text: _message);
+  return TextField(controller: controller);
+}
+// → 再ビルドのたびに作り直され、IME（日本語入力）が壊れる
 
-class _CounterState extends State<Counter> {
-  @override
-  Widget build(BuildContext context) => TextButton(
-    onPressed: () => setState(() => count++),
-    child: Text('\$count'),
-  );
+// ✅ State のフィールドに持ち、initState で 1 回だけ
+late final TextEditingController controller;
+
+@override
+void initState() {
+  super.initState();
+  controller = TextEditingController(text: _message);
 }
 
-// ✅ State の中に持つ
-class _CounterState extends State<Counter> {
-  int count = 0;              // ← ここ
-  // 画面をまたぐ状態は Provider / Riverpod で管理
+@override
+void dispose() {
+  controller.dispose();   // 後始末も忘れずに
+  super.dispose();
 }''',
         accent: AppColors.green,
       ).asSlide('/appendix-4'),
