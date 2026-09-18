@@ -162,6 +162,159 @@ class _WindowBar extends StatelessWidget {
       decoration: BoxDecoration(color: color, shape: BoxShape.circle));
 }
 
+/// ❌ と ✅ のコードを左右に並べて見比べるレイアウト。
+///
+/// [CodeLayout] は縦に長いコードをスクロールさせるが、登壇中にスクロールする
+/// のは現実的でない。こちらは 2 つのコードを左右に分けて 1 画面に収める。
+///
+/// さらに、コードが枠に収まらない場合は折り返しでもスクロールでもなく
+/// **縮小**して収める（[FittedBox]）。行の折り返しでコードの構造が崩れるのを
+/// 避けるため。[fontSize] は縮小前の基準サイズ。
+class CodeComparisonLayout extends StatelessWidget {
+  const CodeComparisonLayout({
+    super.key,
+    required this.badCode,
+    required this.goodCode,
+    this.title,
+    this.badLabel = '❌ やりがち',
+    this.goodLabel = '✅ こう書く',
+    this.accent = AppColors.blue,
+    this.note,
+    this.fontSize = 28,
+  });
+
+  /// 左に置く、うまくいかない方のコード。
+  final String badCode;
+
+  /// 右に置く、直した方のコード。
+  final String goodCode;
+
+  /// スライド上部の見出し。
+  final String? title;
+
+  /// 左右のカードの見出し。
+  final String badLabel;
+  final String goodLabel;
+
+  final Color accent;
+
+  /// 2 つのカードの下に置く補足（省略可）。
+  final String? note;
+
+  /// コードの基準フォントサイズ。収まらなければこれより小さく描画される。
+  final double fontSize;
+
+  static const _bad = Color(0xFFEF5350);
+  static const _good = Color(0xFF4CAF50);
+
+  @override
+  Widget build(BuildContext context) {
+    return SlideFrame(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (title != null) ...[
+            SlideHeading(title!, accent: accent),
+            const SizedBox(height: SlideSpacing.lg),
+          ],
+          Expanded(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: _CodeCard(
+                    label: badLabel,
+                    code: badCode,
+                    color: _bad,
+                    fontSize: fontSize,
+                  ),
+                ),
+                const SizedBox(width: SlideSpacing.lg),
+                Expanded(
+                  child: _CodeCard(
+                    label: goodLabel,
+                    code: goodCode,
+                    color: _good,
+                    fontSize: fontSize,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (note != null) ...[
+            const SizedBox(height: SlideSpacing.md),
+            Text(note!, style: SlideTextStyles.caption),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// [CodeComparisonLayout] の片側。ラベル帯＋コード本体。
+class _CodeCard extends StatelessWidget {
+  const _CodeCard({
+    required this.label,
+    required this.code,
+    required this.color,
+    required this.fontSize,
+  });
+
+  final String label;
+  final String code;
+  final Color color;
+  final double fontSize;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF161B22),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.5), width: 2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: SlideSpacing.md,
+              vertical: 10,
+            ),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(18)),
+            ),
+            child: Text(
+              label,
+              style: SlideTextStyles.subtitle.copyWith(
+                fontSize: 26,
+                color: color,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(SlideSpacing.md),
+              child: FittedBox(
+                // 収まらないときは折り返さずに縮小する。左上基準で拡大はしない。
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.topLeft,
+                child: Text(
+                  code,
+                  softWrap: false,
+                  style: SlideTextStyles.code.copyWith(fontSize: fontSize),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// 画像＋キャプションレイアウト。
 class CaptionedImageLayout extends StatelessWidget {
   const CaptionedImageLayout({

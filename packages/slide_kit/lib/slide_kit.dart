@@ -6,7 +6,7 @@
 /// - レイアウト部品: [TitleLayout] / [SectionDividerLayout] / [BigMessageLayout]
 ///   / [BulletLayout] / [AgendaLayout] / [TwoColumnLayout] / [ComparisonLayout]
 ///   / [CardsLayout] / [QuoteLayout] / [CodeLayout] / [CaptionedImageLayout]
-///   / [FullBleedImageLayout] / [CenteredImageLayout]
+///   / [CodeComparisonLayout] / [FullBleedImageLayout] / [CenteredImageLayout]
 /// - [SlideContentX.asSlide]: レイアウトをフッター付きスライドに変換
 /// - デザイントークン: [AppColors] / [SlideTheme] / [SlideTextStyles] /
 ///   [SlideSpacing] / [SlideDecoration]

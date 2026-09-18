@@ -95,7 +95,8 @@ class _PhotoIntroBodyState extends State<_PhotoIntroBody> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     // 背景画像の実寸（アスペクト比）を得るために解決する。
-    final stream = widget.background.resolve(createLocalImageConfiguration(context));
+    final stream =
+        widget.background.resolve(createLocalImageConfiguration(context));
     if (stream.key != _stream?.key) {
       if (_listener != null) _stream?.removeListener(_listener!);
       _listener = ImageStreamListener((info, _) {
@@ -127,7 +128,8 @@ class _PhotoIntroBodyState extends State<_PhotoIntroBody> {
           contents: [
             TargetContent(
               align: ContentAlign.bottom,
-              builder: (context, controller) => _ProfilePopup(profile: widget.profile),
+              builder: (context, controller) =>
+                  _ProfilePopup(profile: widget.profile),
             ),
           ],
         ),
@@ -158,7 +160,8 @@ class _PhotoIntroBodyState extends State<_PhotoIntroBody> {
                   rect.left + widget.focusFraction.dx * rect.width,
                   rect.top + widget.focusFraction.dy * rect.height,
                 );
-          final diameter = (rect?.width ?? box.width) * widget.focusDiameterFraction;
+          final diameter =
+              (rect?.width ?? box.width) * widget.focusDiameterFraction;
 
           return Stack(
             children: [
