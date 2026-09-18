@@ -176,6 +176,9 @@ List<FlutterDeckSlideWidget> get slides => [
         lesson: 'Controller は build で作るな\ninitState で 1 回だけ！',
       ).slides,
 
+      // あるある → コミュニティ紹介 の橋渡し。初学者へのメッセージ。
+      _messageSlide().asSlide('/message'),
+
       // ══════════ クロージング ══════════
 
       const BulletLayout(
@@ -312,6 +315,49 @@ void dispose() {
         accent: AppColors.green,
       ).asSlide('/appendix-4'),
     ];
+
+/// あるある → コミュニティ紹介 の橋渡し。Flutter初学者への応援メッセージ。
+Widget _messageSlide() {
+  return SlideFrame(
+    // あるあるのタイトルと同じ高さから始めたいので上寄せ。
+    alignment: Alignment.topCenter,
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          'Flutter初学者のあなたへ',
+          textAlign: TextAlign.center,
+          style: SlideTextStyles.title.copyWith(
+            color: AppColors.blue,
+            fontSize: 48,
+          ),
+        ),
+        const SizedBox(height: SlideSpacing.xl),
+        Text(
+          'あるあるは、みんなが通る道。',
+          textAlign: TextAlign.center,
+          style: SlideTextStyles.body.copyWith(fontSize: 40),
+        ),
+        const SizedBox(height: SlideSpacing.md),
+        Text(
+          'ここにいるベテランもみんな経験しています。',
+          textAlign: TextAlign.center,
+          style: SlideTextStyles.body.copyWith(fontSize: 40),
+        ),
+        const SizedBox(height: SlideSpacing.xl),
+        _gradientWord('怖がらず、書いていこう！', fontSize: 56),
+        const SizedBox(height: SlideSpacing.xl),
+        Text(
+          'そして、一人で悩まないで',
+          textAlign: TextAlign.center,
+          style: SlideTextStyles.body.copyWith(fontSize: 40),
+        ),
+        const SizedBox(height: SlideSpacing.md),
+        _gradientWord('聞いていこう！', fontSize: 56),
+      ],
+    ),
+  );
+}
 
 /// 岡山.Flutter グラデを文字に乗せる（強調ワード用）。
 Widget _gradientWord(String text, {required double fontSize}) {
