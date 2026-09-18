@@ -172,7 +172,7 @@ List<FlutterDeckSlideWidget> get slides => [
         ],
       ).asSlide('/okayama-flutter'),
 
-      const BigMessageLayout(message: 'ありがとうございました 🙏').asSlide('/closing'),
+      const ThanksSlide(),
 
       // ══════════ Appendix（初学者向け解説）══════════
 
@@ -248,16 +248,17 @@ Image.asset(
       const CodeLayout(
         title: 'Appendix③ テキスト崩れの直し方',
         filename: 'text_style.dart',
-        code: '''// ❌ Material（Scaffold）の外の Text は黄色い二重下線
+        code: '''// ❌ Material が無いと黄色い二重下線＆極太になる
 runApp(
-  MaterialApp(
-    home: Center(child: Text('Hello')),
+  const Directionality(
+    textDirection: TextDirection.ltr,
+    child: Text('Hello'),   // ← DefaultTextStyle が無い
   ),
 );
 
-// ✅ Scaffold（Material）の配下に置く
+// ✅ MaterialApp / Scaffold の配下に置く
 runApp(
-  MaterialApp(
+  const MaterialApp(
     home: Scaffold(
       body: Center(child: Text('Hello')),
     ),
@@ -342,6 +343,41 @@ class ProposalSlide extends FlutterDeckSlideWidget {
               style: SlideTextStyles.caption.copyWith(fontSize: 28),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// クロージング。オープニングのカバーと対になるよう、岡山.Flutter の
+/// グラデ（[AppColors.primaryGradient]）背景＋白の極太「Thanks!!」。
+class ThanksSlide extends FlutterDeckSlideWidget {
+  const ThanksSlide()
+      : super(
+          configuration: const FlutterDeckSlideConfiguration(route: '/closing'),
+        );
+
+  @override
+  FlutterDeckSlide build(BuildContext context) {
+    return FlutterDeckSlide.blank(
+      backgroundBuilder: (context) => const DecoratedBox(
+        decoration: BoxDecoration(gradient: AppColors.primaryGradient),
+      ),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 80),
+        child: Center(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              'Thanks!!',
+              style: TextStyle(
+                fontSize: 240,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+                letterSpacing: 2,
+              ),
+            ),
+          ),
         ),
       ),
     );
