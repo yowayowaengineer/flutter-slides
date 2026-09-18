@@ -1,0 +1,101 @@
+name: Deploy slides to GitHub Pages
+
+# talks/ 配下の各登壇を Flutter Web でビルドし、登壇ごとのサブパスで公開する。
+#   https://<owner>.github.io/<repo>/                 … 登壇一覧
+#   https://<owner>.github.io/<repo>/<talk>/          … 各登壇
+#
+# 事前に一度だけ: リポジトリの Settings → Pages → Build and deployment →
+# Source を「GitHub Actions」に設定する。
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # .fvmrc に固定した Flutter バージョンをそのまま CI でも使う。
+      - name: Read Flutter version from .fvmrc
+        id: fvm
+        run: echo "flutter=$(jq -r .flutter .fvmrc)" >> "$GITHUB_OUTPUT"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ steps.fvm.outputs.flutter }}
+          channel: stable
+          cache: true
+
+      # pub workspace なのでルートで一度解決すれば各メンバーに行き渡る。
+      - name: Resolve workspace
+        run: flutter pub get
+
+      - name: Build each talk
+        run: |
+          set -euo pipefail
+          repo="${{ github.event.repository.name }}"
+          # 公開しない登壇（スペース区切り）。テンプレートは除外。
+          exclude="_template"
+
+          mkdir -p public
+          links=""
+          for dir in talks/*/; do
+            name="$(basename "$dir")"
+            [ -f "${dir}pubspec.yaml" ] || continue
+            [ -d "${dir}web" ] || continue
+            case " $exclude " in *" $name "*) echo "skip $name"; continue;; esac
+
+            echo "::group::build $name"
+            ( cd "$dir" && flutter build web --release --base-href "/$repo/$name/" )
+            mkdir -p "public/$name"
+            cp -r "${dir}build/web/." "public/$name/"
+            links="${links}      <li><a href=\"./$name/\">$name</a></li>\n"
+            echo "::endgroup::"
+          done
+
+          # 一覧ページ（ダークテーマ）。
+          {
+            echo '<!doctype html>'
+            echo '<html lang="ja"><head><meta charset="utf-8">'
+            echo '<meta name="viewport" content="width=device-width, initial-scale=1">'
+            echo '<title>flutter-slides</title>'
+            echo '<style>'
+            echo 'body{font-family:system-ui,sans-serif;max-width:720px;margin:48px auto;padding:0 20px;background:#0D1117;color:#fff}'
+            echo 'h1{color:#5EC9F7}a{color:#5EC9F7;text-decoration:none}a:hover{text-decoration:underline}'
+            echo 'ul{list-style:none;padding:0}li{margin:.6em 0;font-size:1.25rem}'
+            echo '</style></head><body>'
+            echo '<h1>flutter-slides</h1>'
+            echo '<p>よわよわエンジニアの Flutter 登壇資料</p>'
+            echo '<ul>'
+            printf "%b" "$links"
+            echo '</ul></body></html>'
+          } > public/index.html
+
+          # GitHub Pages で Jekyll 処理を無効化（保険）。
+          touch public/.nojekyll
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
