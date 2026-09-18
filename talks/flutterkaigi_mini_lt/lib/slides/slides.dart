@@ -548,7 +548,7 @@ Widget _slideCountSlide() {
             const SizedBox(height: SlideSpacing.lg),
             // ◯スライド = デッキ総数（Appendix 含む）。増減したら数字を更新。
             Text(
-              '（5分のLTに対して32スライド）',
+              '（5分のLTに対して36スライド）',
               textAlign: TextAlign.center,
               style: SlideTextStyles.subtitle.copyWith(fontSize: 44),
             ),
