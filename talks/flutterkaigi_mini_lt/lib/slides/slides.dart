@@ -195,12 +195,7 @@ List<FlutterDeckSlideWidget> get slides => [
 
       // ══════════ Appendix（初学者向け解説）══════════
 
-      const SectionDividerLayout(
-        label: 'APPENDIX',
-        title: '解説：あるあるの直し方',
-        subtitle: 'ここからは真面目に',
-        accent: AppColors.green,
-      ).asSlide('/appendix-intro'),
+      _appendixIntroSlide().asSlide('/appendix-intro'),
 
       // 本編のあるある①は口頭で補う前提で削ってある。
       // そこで話した中身を、見返せるようにこちらへ残す。
@@ -390,6 +385,33 @@ Widget _messageSlide() {
             textAlign: TextAlign.center, style: body),
         const SizedBox(height: SlideSpacing.sm),
         _gradientWord('聞いていこう！', fontSize: 52),
+      ],
+    ),
+  );
+}
+
+/// Appendix の章扉。中央に大きく「Appendix」＋補足。
+Widget _appendixIntroSlide() {
+  return SlideFrame(
+    alignment: Alignment.center,
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          'Appendix',
+          textAlign: TextAlign.center,
+          style: SlideTextStyles.display.copyWith(fontSize: 140),
+        ),
+        const SizedBox(height: SlideSpacing.md),
+        Text(
+          '（あるあるネタの補足）',
+          textAlign: TextAlign.center,
+          style: SlideTextStyles.subtitle.copyWith(
+            fontSize: 44,
+            fontWeight: FontWeight.w400,
+            color: AppColors.deckText.withValues(alpha: 0.7),
+          ),
+        ),
       ],
     ),
   );
