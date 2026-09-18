@@ -127,7 +127,9 @@ List<FlutterDeckSlideWidget> get slides => [
             'たいていは `pubspec.yaml` の\n'
             '`assets:` への登録忘れか、\n'
             'パス・インデントのミス。',
-        errorText: 'Unable to load asset:\n"assets/images/logo.png"',
+        // 右で実際に読み込ませている存在しないパスと一致させること。
+        // パスを変えたらこの文言も揃え直す。
+        errorText: 'Unable to load asset:\n"assets/images/dashumaru_typo.png"',
         // わざと存在しないパス。errorBuilder は付けない（素の挙動を見せる）。
         // 上下中央に置く（実画像が入ったときも中央表示）。
         explainRight: Center(
@@ -145,8 +147,10 @@ List<FlutterDeckSlideWidget> get slides => [
         shotAsset: 'assets/images/aruaru3_shot.gif',
         shotPlaceholderLabel: 'テキストが崩れる様子（gif）',
         shotWidth: 400,
+        // 実際のスタイルは color: 0xD0FF0000（赤）＋ decorationColor: 0xFFFFFF00
+        // の二重下線。gif に映る見た目と言葉を一致させている。
         symptom: '`Text` を置いただけなのに\n'
-            '黄色い二重下線＆極太文字に。\n\n'
+            '黄色い二重下線＆赤い極太文字に。\n\n'
             '`Material`（`Scaffold`）の外に\n'
             '`Text` を置くとこうなる。',
         errorText: '// エラーは出ない\n黄色い下線の Text が爆誕',
@@ -212,19 +216,18 @@ List<FlutterDeckSlideWidget> get slides => [
         ],
       ).asSlide('/appendix-1-what'),
 
-      const CodeLayout(
+      const CodeComparisonLayout(
         title: 'Appendix① オーバーフローの直し方',
-        filename: 'overflow.dart',
-        code: '''// ❌ はみ出す
-Row(
+        accent: AppColors.green,
+        badCode: '''Row(
   children: [
     Text('とても長いテキストが入ります……'),
     Icon(Icons.star),
   ],
 )
 
-// ✅ Expanded / Flexible で包む
-Row(
+// はみ出した分だけ縞々が出る''',
+        goodCode: '''Row(
   children: [
     Expanded(
       child: Text(
@@ -234,9 +237,8 @@ Row(
     ),
     Icon(Icons.star),
   ],
-)
-// 他: Wrap / SingleChildScrollView / FittedBox''',
-        accent: AppColors.green,
+)''',
+        note: '他の手: Wrap / SingleChildScrollView / FittedBox',
       ).asSlide('/appendix-1'),
 
       const BulletLayout(
@@ -246,30 +248,33 @@ Row(
           Bullet('画像は `pubspec.yaml` の `assets:` に宣言したものだけが同梱される'),
           Bullet('宣言し忘れ・パス違い・インデントミスで「Unable to load asset」'),
           Bullet('`assets:` を変えたら `flutter pub get` が必要'),
-          Bullet('反映はホットリロードではなくホットリスタート（or 再ビルド）',
-              emphasis: true),
+          Bullet('反映はホットリロードではなくホットリスタート（or 再ビルド）', emphasis: true),
           Bullet('`- assets/images/` とフォルダ指定で中身をまとめて含められる'),
         ],
       ).asSlide('/appendix-2-what'),
 
-      const CodeLayout(
+      const CodeComparisonLayout(
         title: 'Appendix② 画像が出ないの直し方',
-        filename: 'pubspec.yaml',
-        code: '''# pubspec.yaml に assets を宣言（インデント注意）
+        accent: AppColors.green,
+        badCode: '''# pubspec.yaml
+flutter:
+  uses-material-design: true
+  # assets: を書き忘れている
+
+# コード側
+Image.asset('images/logo.png')
+
+// Unable to load asset: "images/logo.png"''',
+        goodCode: '''# pubspec.yaml（インデントに注意）
 flutter:
   assets:
-    - images/logo.png      # or - images/
+    - images/logo.png   # or - images/
 
-# そのあと必ず:
+# 書き換えたあと必ず
 #   flutter pub get
-#   ホットリスタート（ホットリロードでは反映されない）
-
-# 保険として errorBuilder を付けると安心
-Image.asset(
-  'images/logo.png',
-  errorBuilder: (context, error, stack) => Icon(Icons.broken_image),
-)''',
-        accent: AppColors.green,
+#   ホットリスタート
+#   （ホットリロードでは反映されない）''',
+        note: '保険として Image.asset に errorBuilder を付けておくと、出ないときに気づける',
       ).asSlide('/appendix-2'),
 
       const BulletLayout(
@@ -277,36 +282,37 @@ Image.asset(
         accent: AppColors.green,
         bullets: [
           Bullet('`Text` は祖先の `DefaultTextStyle` からスタイルを受け取る'),
-          Bullet('`MaterialApp` / `Scaffold` の配下だと適切なスタイルが提供される'),
-          Bullet('その外だと fallback の黄色い二重下線になる（デバッグの警告表示）',
-              emphasis: true),
-          Bullet('`runApp` 直下に素の `Text` を置くと起きがち'),
-          Bullet('対策: Material 配下に置く／必要なら `DefaultTextStyle` で囲む'),
+          Bullet('`MaterialApp` は「Material の外にいるぞ」と気づかせる警告用スタイルを敷く'),
+          Bullet('`Scaffold`（`Material`）の配下に入ると、そこで適切なスタイルに上書きされる'),
+          Bullet('上書きされないまま描かれると、黄色い二重下線＆赤い極太文字になる', emphasis: true),
+          Bullet('`MaterialApp` の `home` に `Scaffold` を挟み忘れると起きがち'),
+          Bullet('対策: `Scaffold` 配下に置く／必要なら `DefaultTextStyle` で囲む'),
         ],
       ).asSlide('/appendix-3-what'),
 
-      const CodeLayout(
+      const CodeComparisonLayout(
         title: 'Appendix③ テキスト崩れの直し方',
-        filename: 'text_style.dart',
-        code: '''// ❌ Material が無いと黄色い二重下線＆極太になる
-runApp(
-  const Directionality(
-    textDirection: TextDirection.ltr,
-    child: Text('Hello'),   // ← DefaultTextStyle が無い
-  ),
-);
-
-// ✅ MaterialApp / Scaffold の配下に置く
-runApp(
+        accent: AppColors.green,
+        badCode: '''runApp(
   const MaterialApp(
-    home: Scaffold(
-      body: Center(child: Text('Hello')),
+    home: Center(
+      child: Text('Hello'),
     ),
   ),
 );
 
-// スタイルは Theme.textTheme か TextStyle.copyWith で''',
-        accent: AppColors.green,
+// Scaffold が無い
+// → 黄色い二重下線＆赤い極太''',
+        goodCode: '''runApp(
+  const MaterialApp(
+    home: Scaffold(
+      body: Center(
+        child: Text('Hello'),
+      ),
+    ),
+  ),
+);''',
+        note: 'スタイルは Theme.of(context).textTheme か TextStyle.copyWith で整える',
       ).asSlide('/appendix-3'),
 
       const BulletLayout(
@@ -315,77 +321,81 @@ runApp(
         bullets: [
           Bullet('`build` は状態が変わるたび何度も呼ばれる'),
           Bullet('その中で `TextEditingController` を new すると毎回別物になる'),
-          Bullet('IME（日本語）の変換途中がリセットされ「？！おえういあ」に',
-              emphasis: true),
+          Bullet('IME（日本語）の変換途中がリセットされ「？！おえういあ」に', emphasis: true),
           Bullet('Controller は `State` のフィールドに持ち `initState` で 1 回だけ生成'),
           Bullet('`dispose` で破棄してリークを防ぐ'),
         ],
       ).asSlide('/appendix-4-what'),
 
-      const CodeLayout(
+      const CodeComparisonLayout(
         title: 'Appendix④ Controller は initState で',
-        filename: 'controller.dart',
-        code: '''// ❌ build の中で毎回 Controller を作る
-Widget build(BuildContext context) {
-  final controller = TextEditingController(text: _message);
+        accent: AppColors.green,
+        badCode: '''Widget build(BuildContext context) {
+  final controller =
+      TextEditingController(text: _message);
   return TextField(controller: controller);
 }
-// → 再ビルドのたびに作り直され、IME（日本語入力）が壊れる
 
-// ✅ State のフィールドに持ち、initState で 1 回だけ
-late final TextEditingController controller;
+// build は何度も呼ばれる
+// → 毎回作り直されて IME が壊れる''',
+        goodCode: '''late final TextEditingController controller;
 
 @override
 void initState() {
   super.initState();
-  controller = TextEditingController(text: _message);
+  controller =
+      TextEditingController(text: _message);
 }
 
 @override
 void dispose() {
-  controller.dispose();   // 後始末も忘れずに
+  controller.dispose();
   super.dispose();
 }''',
-        accent: AppColors.green,
+        note: 'Controller は State のフィールドに持ち、initState で 1 回だけ作る',
       ).asSlide('/appendix-4'),
     ];
 
 /// あるある → コミュニティ紹介 の橋渡し。Flutter初学者への応援メッセージ。
 Widget _messageSlide() {
-  // 非強調テキストは小さめ・行間も詰めて、縦に収める。
-  final body = SlideTextStyles.body.copyWith(fontSize: 32);
+  final body = SlideTextStyles.body.copyWith(fontSize: 38);
+  // 「前置き → グラデの決め台詞」を 2 セット並べる。
+  // 前置きと決め台詞の間は 2 セットとも同じ [lead]、セット同士の区切りは
+  // それより広い [group] にして、まとまりが見えるようにする。
+  const lead = SlideSpacing.xl;
+  const group = 96.0;
   return SlideFrame(
-    // あるあるのタイトルと同じ高さから始めたいので上寄せ。上下パディングも縮小。
-    alignment: Alignment.topCenter,
-    padding: const EdgeInsets.symmetric(
-      horizontal: SlideSpacing.horizontal,
-      vertical: 48,
-    ),
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          'Flutter初学者のあなたへ',
-          textAlign: TextAlign.center,
-          style: SlideTextStyles.title.copyWith(
-            color: AppColors.blue,
-            fontSize: 40,
+    // 縦中央。文字だけのスライドなので上寄せだと下half が空いて間延びする。
+    alignment: Alignment.center,
+    child: FittedBox(
+      // 念のため。文言を足して縦に溢れても縮んで収まる。
+      fit: BoxFit.scaleDown,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Flutter初学者のあなたへ',
+            textAlign: TextAlign.center,
+            style: SlideTextStyles.title.copyWith(
+              color: AppColors.blue,
+              fontSize: 52,
+            ),
           ),
-        ),
-        const SizedBox(height: SlideSpacing.lg),
-        Text('あるあるは、みんなが通る道。',
-            textAlign: TextAlign.center, style: body),
-        const SizedBox(height: SlideSpacing.sm),
-        Text('ここにいるベテランもみんな経験しています。',
-            textAlign: TextAlign.center, style: body),
-        const SizedBox(height: SlideSpacing.lg),
-        _gradientWord('怖がらず、書いていこう！', fontSize: 52),
-        const SizedBox(height: SlideSpacing.lg),
-        Text('そして、一人で悩まないで',
-            textAlign: TextAlign.center, style: body),
-        const SizedBox(height: SlideSpacing.sm),
-        _gradientWord('聞いていこう！', fontSize: 52),
-      ],
+          const SizedBox(height: group),
+          // セット1
+          Text('あるあるは、みんなが通る道。', textAlign: TextAlign.center, style: body),
+          const SizedBox(height: SlideSpacing.sm),
+          Text('ここにいるベテランもみんな経験しています。',
+              textAlign: TextAlign.center, style: body),
+          const SizedBox(height: lead),
+          _gradientWord('怖がらず、書いていこう！', fontSize: 72),
+          const SizedBox(height: group),
+          // セット2（セット1と同じ間隔で決め台詞へ繋ぐ）
+          Text('そして、一人で悩まないで', textAlign: TextAlign.center, style: body),
+          const SizedBox(height: lead),
+          _gradientWord('聞いていこう！', fontSize: 72),
+        ],
+      ),
     ),
   );
 }
