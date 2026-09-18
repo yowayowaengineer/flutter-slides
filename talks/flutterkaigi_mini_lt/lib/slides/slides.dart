@@ -28,7 +28,7 @@ List<FlutterDeckSlideWidget> get slides => [
       const ProposalSlide(),
 
       const BigMessageLayout(
-        message: '応募しました 📮',
+        message: '応募しました',
         gradient: flutterKaigiGradient,
       ).asSlide('/applied'),
 
@@ -311,34 +311,37 @@ class ProposalSlide extends FlutterDeckSlideWidget {
   @override
   FlutterDeckSlide build(BuildContext context) {
     return FlutterDeckSlide.blank(
+      // 横長画像（1051x812）を大きく見せたいので上下の余白を詰め、
+      // 見出し・キャプションもコンパクトに。全要素を中央寄せ。
       builder: (context) => Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: SlideSpacing.horizontal,
-          vertical: SlideSpacing.vertical,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 40),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
               'LT 登壇のプロポーザル',
               textAlign: TextAlign.center,
-              style: SlideTextStyles.headline.copyWith(fontSize: 56),
+              style: SlideTextStyles.headline.copyWith(fontSize: 48),
             ),
-            const SizedBox(height: SlideSpacing.lg),
+            const SizedBox(height: SlideSpacing.sm),
             Expanded(
-              child: Image.asset(
-                'assets/images/dashumaru.png',
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stack) =>
-                    const ScreenshotPlaceholder(
-                  'だしゅまるくん（スピーカー特典）',
-                  accent: AppColors.pink,
+              child: Center(
+                child: Image.asset(
+                  'assets/images/dashumaru.png',
+                  fit: BoxFit.contain,
+                  alignment: Alignment.center,
+                  errorBuilder: (context, error, stack) =>
+                      const ScreenshotPlaceholder(
+                    'だしゅまるくん（スピーカー特典）',
+                    accent: AppColors.pink,
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: SlideSpacing.md),
+            const SizedBox(height: SlideSpacing.sm),
             Text(
-              '…このぬいぐるみ「だしゅまるくん」欲しさに 📮',
+              '…このぬいぐるみ「だしゅまるくん」欲しさに',
               textAlign: TextAlign.center,
               style: SlideTextStyles.caption.copyWith(fontSize: 28),
             ),
