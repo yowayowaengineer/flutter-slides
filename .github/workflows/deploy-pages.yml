@@ -4,6 +4,9 @@ name: Deploy slides to GitHub Pages
 #   https://<owner>.github.io/<repo>/                 … 登壇一覧
 #   https://<owner>.github.io/<repo>/<talk>/          … 各登壇
 #
+# 公開対象は talks/ 直下の登壇のうち、先頭が _ でないもの。
+# 先頭 _ （_template / _gallery などの内部用）は公開しない。
+#
 # 事前に一度だけ: リポジトリの Settings → Pages → Build and deployment →
 # Source を「GitHub Actions」に設定する。
 
@@ -46,8 +49,6 @@ jobs:
         run: |
           set -euo pipefail
           repo="${{ github.event.repository.name }}"
-          # 公開しない登壇（スペース区切り）。テンプレートは除外。
-          exclude="_template"
 
           mkdir -p public
           links=""
@@ -55,7 +56,8 @@ jobs:
             name="$(basename "$dir")"
             [ -f "${dir}pubspec.yaml" ] || continue
             [ -d "${dir}web" ] || continue
-            case " $exclude " in *" $name "*) echo "skip $name"; continue;; esac
+            # 先頭が _ の登壇（_template / _gallery などの内部用）は公開しない。
+            case "$name" in _*) echo "skip $name"; continue;; esac
 
             echo "::group::build $name"
             ( cd "$dir" && flutter build web --release --base-href "/$repo/$name/" )
