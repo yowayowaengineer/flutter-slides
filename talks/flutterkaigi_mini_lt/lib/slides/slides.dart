@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_deck/flutter_deck.dart';
 import 'package:slide_kit/slide_kit.dart';
@@ -71,6 +73,20 @@ List<FlutterDeckSlideWidget> get slides => [
           accent: AppColors.blue,
         ),
       ).asSlide('/title'),
+
+      // 中盤の小ネタ：突貫制作アピール → タイトル再掲
+      const _BddContent().asSlide('/bdd'),
+      _compressionSlide().asSlide('/compression'),
+      _slideCountSlide().asSlide('/slide-count'),
+
+      // タイトル再掲（このオーバーフローを あるある① で回収）
+      const CenteredImageLayout(
+        image: AssetImage('assets/images/overflow_title.png'),
+        placeholder: ScreenshotPlaceholder(
+          'タイトル（オーバーフローさせたもの）',
+          accent: AppColors.blue,
+        ),
+      ).asSlide('/title-2'),
 
       // あるある①：オーバーフロー
       //
@@ -296,6 +312,148 @@ void dispose() {
         accent: AppColors.green,
       ).asSlide('/appendix-4'),
     ];
+
+/// 岡山.Flutter グラデを文字に乗せる（強調ワード用）。
+Widget _gradientWord(String text, {required double fontSize}) {
+  return ShaderMask(
+    blendMode: BlendMode.srcIn,
+    shaderCallback: (bounds) => AppColors.primaryGradient.createShader(bounds),
+    child: Text(
+      text,
+      textAlign: TextAlign.center,
+      style: TextStyle(
+        fontSize: fontSize,
+        fontWeight: FontWeight.w900,
+        color: Colors.white,
+        height: 1.1,
+      ),
+    ),
+  );
+}
+
+TextStyle get _punchStyle => SlideTextStyles.display.copyWith(fontSize: 72);
+
+/// BDD（勉強会・駆動・開発）のネタスライド。
+/// サブタイトルは 3 秒後にふわっと（下から＋フェード）表示する。
+class _BddContent extends StatefulWidget {
+  const _BddContent();
+
+  @override
+  State<_BddContent> createState() => _BddContentState();
+}
+
+class _BddContentState extends State<_BddContent> {
+  bool _reveal = false;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer(const Duration(seconds: 3), () {
+      if (mounted) setState(() => _reveal = true);
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 80),
+      child: Center(
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _gradientWord('BDD', fontSize: 220),
+              const SizedBox(height: SlideSpacing.md),
+              // 3 秒後にふわっと表示。非表示中も場所は確保（BDD が動かない）。
+              AnimatedSlide(
+                offset: _reveal ? Offset.zero : const Offset(0, 0.3),
+                duration: const Duration(milliseconds: 600),
+                curve: Curves.easeOut,
+                child: AnimatedOpacity(
+                  opacity: _reveal ? 1 : 0,
+                  duration: const Duration(milliseconds: 600),
+                  curve: Curves.easeOut,
+                  child: Text(
+                    '（勉強会・駆動・開発）',
+                    textAlign: TextAlign.center,
+                    style: SlideTextStyles.subtitle.copyWith(
+                      fontSize: 48,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 「通常1週間のところを3日間 → 2倍の期間圧縮！」（2倍だけグラデ）。
+Widget _compressionSlide() {
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 80),
+    child: Center(
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('通常1週間のところを3日間',
+                textAlign: TextAlign.center, style: _punchStyle),
+            const SizedBox(height: SlideSpacing.lg),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text('つまり', style: _punchStyle),
+                _gradientWord('2倍', fontSize: 120),
+                Text('の期間圧縮！', style: _punchStyle),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+/// 「スライド数も 2倍!?」（2倍!?だけグラデ）＋補足。
+Widget _slideCountSlide() {
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 80),
+    child: Center(
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('スライド数も', textAlign: TextAlign.center, style: _punchStyle),
+            const SizedBox(height: SlideSpacing.md),
+            _gradientWord('2倍!?', fontSize: 180),
+            const SizedBox(height: SlideSpacing.lg),
+            // ◯スライド = デッキ総数（Appendix 含む）。増減したら数字を更新。
+            Text(
+              '（5分のLTに対して32スライド）',
+              textAlign: TextAlign.center,
+              style: SlideTextStyles.subtitle.copyWith(fontSize: 44),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
 
 /// プロポーザル。スピーカー特典のぬいぐるみ「だしゅまるくん」欲しさに応募した、の図。
 ///
